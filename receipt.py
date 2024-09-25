@@ -93,48 +93,64 @@ class Ingredient:
 
 
 
-    
-    # защитите его от неверных входных данных
-    # есть два пути: использовать @property и допонительные методы или библиотеку pydantic
-    # можно пойти и так и так - для сравнения
-
-
 class Receipt:
 
-    def __init__(self, name:str, ingredient_list:list[tuple[str, int, int, int]]) -> None:
+
+    def __init__(self, name:str, ingredient_list_api) -> None:
         self.name = name
-        self.ingredients = ... # подумайте об эффективном способе завести ингредиенты в классе Рецепта
+        self.ingredient_list_api = ingredient_list_api
+        self.ingredient_list = []
+
+        self._create_ingridiends()
+
+
+    def _create_ingridiends(self):
+        self.ingredient_list = []
+        for i in self.ingredient_list_api:
+            self.ingredient_list.append(Ingredient(i[0], i[1], i[2], i[3]))
+
 
 
     def calc_cost(self, portions=1):
-        ...
+        cost = 0
+        for i in self.ingredient_list:
+            cost+=i.cost
+        return cost*portions
 
     def calc_weight(self, portions=1, raw=True):
-        ...
+        weight = 0
+        if raw:
+            for i in self.ingredient_list:
+                weight+=i.raw_weight
+            return weight*portions
+        else:
+            for i in self.ingredient_list:
+                weight+=i.weight
+            return weight*portions
 
     def __str__(self) -> str:
-        pass
+        res = f"Рецепт блюда {self.name} (одна порция):"
+        for i in self.ingredient_list:
+            a = f" - Ингридиент: {i.name}, чистый вес: {i.raw_weight}, вес: {i.weight}, стоимость {i.cost}"
+
 
 
 if __name__ == '__main__':
-    a = Ingredient("1", 1, 1.1, 1)
-    a.weight = "fg"
-# if __name__ == '__main__':
-#     # Добавьте ещё один (или более) параметр к кортежу, описывающий Ингредиент
-#     # (Представьте что вы готовите. Возможно чего-то не хвататет для этого?)
 
-#     receipt_from_api = {
-#         "title": "Яичница с беконом и помидорами.",
-#         "ingredients_list": [
-#             ('Яйцо', 80, 70, 20),
-#             ('Бекон', 200, 100, 300),
-#             ('Помидор', 100, 80, 200),
-#         ],
-#     }
+    receipt_from_api = {
+        "title": "Пицца по итальянски.",
+        "ingredients_list": [
+            ('Мука', 600, 400, 200),
+            ('Томатный соус', 110, 70, 300),
+            ('Сыр моцарелла ', 100, 90, 250),
+            ('Шампиньоны', 70, 60, 100),
+            ('Ветчина', 70, 60, 150),
+        ],
+    }
+    
+    receipt = Receipt(receipt_from_api['title'], receipt_from_api['ingredients_list'])
 
-#     receipt = Receipt(receipt_from_api['title'], receipt_from_api['ingredients_list'])
+    print(receipt.calc_weight(raw=False))
 
-#     # напишите самопроверку, что вызовы отрабатывают без ошибок на Вашем Рецепте
-#     receipt.calc_cost()
 
-#     # ...
+ 
